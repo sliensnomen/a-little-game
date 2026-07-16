@@ -1,28 +1,13 @@
 using UnityEngine;
 
-public class FontManager : MonoBehaviour
+public class FontManager : MonoSingleton<FontManager>
 {
-    public static FontManager Instance { get; private set; }
-
     public Font englishFont;
     public Font demonicFont;
     public Font chineseFont;
 
-    public static void EnsureExists()
+    protected override void OnInit()
     {
-        if (Instance != null) return;
-        GameObject go = new GameObject("FontManager");
-        go.AddComponent<FontManager>();
-    }
-
-    void Awake()
-    {
-        if (Instance != null)
-        {
-            Destroy(gameObject);
-            return;
-        }
-        Instance = this;
         LoadFonts();
     }
 

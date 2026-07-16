@@ -1,10 +1,8 @@
 using UnityEngine;
 using UnityEngine.Events;
 
-public class InputManager : MonoBehaviour
+public class InputManager : MonoSingleton<InputManager>
 {
-    public static InputManager Instance { get; private set; }
-
     public UnityEvent OnQPressed = new UnityEvent();
     public UnityEvent OnEPressed = new UnityEvent();
     public UnityEvent OnGuessPressed = new UnityEvent();
@@ -22,17 +20,7 @@ public class InputManager : MonoBehaviour
     private GameManager gameManager;
     private GameConfig config;
 
-    void Awake()
-    {
-        if (Instance != null)
-        {
-            Destroy(gameObject);
-            return;
-        }
-        Instance = this;
-    }
-
-    void Start()
+    protected override void OnInit()
     {
         gameManager = GameManager.Instance ?? FindObjectOfType<GameManager>();
         config = GameManager.Instance?.config;

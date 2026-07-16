@@ -48,6 +48,8 @@ public class WordSpawner : MonoBehaviour
     void Start()
     {
         if (config == null) config = GameManager.Instance?.config;
+        if (config == null)
+            Debug.LogError("[WordSpawner] GameConfig is missing. Assign it in the inspector or ensure GameManager has config.");
 
         HolyLightSystem.EnsureExists();
         ParticleManager.EnsureExists();
@@ -96,6 +98,11 @@ public class WordSpawner : MonoBehaviour
     void StartCombat()
     {
         if (inCombat) return;
+        if (config == null)
+        {
+            Debug.LogError("[WordSpawner] Cannot start combat: GameConfig is missing.");
+            return;
+        }
         inCombat = true;
         if (defenseLine != null) defenseLine.gameObject.SetActive(true);
         loop = StartCoroutine(CombatLoop());
@@ -369,9 +376,13 @@ public class WordSpawner : MonoBehaviour
         }
         if (!activeWords.Contains(word)) return;
 
+        string feedbackText = "";
+        Color feedbackColor = Color.white;
+
         if (word.wordType == WordType.Interference)
         {
-            // Q shield blocked an interference word; no penalty.
+            feedbackText = "净化";
+            feedbackColor = new Color(0.5f, 0.5f, 0.5f);
         }
         else if (reveal)
         {
@@ -382,30 +393,39 @@ public class WordSpawner : MonoBehaviour
             if (word.wordType == WordType.Dual)
             {
                 TrueNameSystemInstance?.AddDomainCharge(config.domainChargePerDual);
+                feedbackText = "双生";
+                feedbackColor = new Color(0.706f, 0.343f, 0.522f);
             }
             else
             {
                 combo++;
+                feedbackText = combo >= 3 ? "连击!" : "命中";
+                feedbackColor = combo >= 3 ? new Color(1f, 0.84f, 0f) : new Color(0.831f, 0.686f, 0.216f);
                 var tns = TrueNameSystemInstance;
                 if (tns != null && tns.IsAllRevealed)
                     tns.AddDomainCharge(config.domainChargePerReveal);
             }
             UIManager.Instance?.UpdateCombo(combo);
         }
-        // else: Q shield blocked a demonic word; no penalty.
+        else
+        {
+            feedbackText = "格挡";
+            feedbackColor = new Color(0.831f, 0.686f, 0.216f);
+        }
 
-        CameraShake.Instance?.Shake(word.wordType == WordType.Dual ? 0.3f : 0.05f,
-            word.wordType == WordType.Dual ? 0.15f : 0.08f);
+        CameraShake.Instance?.Shake(word.wordType == WordType.Dual ? 0.3f : 0.08f,
+            word.wordType == WordType.Dual ? 0.15f : 0.1f);
         WordHitEffect.Instance?.Play(word.rectTransform.anchoredPosition, word.language, true);
         ParticleManager.Instance?.PlayHit(word.rectTransform.anchoredPosition, word.language);
         AudioManager.Instance?.PlayHit();
+        if (!string.IsNullOrEmpty(feedbackText))
+            UIManager.Instance?.ShowFloatingTextAtWord(feedbackText, word.rectTransform, feedbackColor);
+
         if (reveal)
         {
             SilhouetteDirector.Instance?.playerSilhouette?.TriggerAttack();
         }
-        RemoveFromHold(word);
-        activeWords.Remove(word);
-        Release(word);
+        StartCoroutine(HitPunchAndRelease(word));
     }
 
     public void HandleMiss(WordProjectile word)
@@ -427,6 +447,11 @@ public class WordSpawner : MonoBehaviour
         AudioManager.Instance?.PlayMiss();
         SilhouetteDirector.Instance?.enemySilhouette?.TriggerAttack();
         SilhouetteDirector.Instance?.playerSilhouette?.TriggerTakeHit();
+
+        string feedbackText = wrongInput ? "失误" : "Miss";
+        Color feedbackColor = new Color(1f, 0.25f, 0.25f);
+        UIManager.Instance?.ShowFloatingTextAtWord(feedbackText, word.rectTransform, feedbackColor);
+
         RemoveFromHold(word);
         activeWords.Remove(word);
         Release(word);
@@ -457,7 +482,27 @@ public class WordSpawner : MonoBehaviour
         word.gameObject.SetActive(false);
         word.State = WordState.Fly;
         word.holdElapsed = 0f;
+        word.ClearPrompt();
         pool.Enqueue(word);
+    }
+
+    IEnumerator HitPunchAndRelease(WordProjectile word)
+    {
+        RemoveFromHold(word);
+        activeWords.Remove(word);
+
+        RectTransform rt = word.rectTransform;
+        Vector3 originalScale = rt != null ? rt.localScale : Vector3.one;
+        if (rt != null) rt.localScale = originalScale * 1.25f;
+
+        yield return new WaitForSecondsRealtime(0.05f);
+
+        if (rt != null) rt.localScale = originalScale * 0.85f;
+
+        yield return new WaitForSecondsRealtime(0.05f);
+
+        if (rt != null) rt.localScale = originalScale;
+        Release(word);
     }
 
     void EnsureDefenseLine()

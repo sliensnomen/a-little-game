@@ -2,18 +2,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class ParticleManager : MonoBehaviour
+public class ParticleManager : MonoSingleton<ParticleManager>
 {
-    public static ParticleManager Instance { get; private set; }
-
-    public static void EnsureExists()
-    {
-        if (Instance != null) return;
-        if (FindObjectOfType<ParticleManager>() != null) return;
-        GameObject go = new GameObject("ParticleManager");
-        go.AddComponent<ParticleManager>();
-    }
-
     public int prewarmCount = 200;
     public int maxActive = 500;
     public Vector2 particleSize = new Vector2(16f, 16f);
@@ -35,27 +25,12 @@ public class ParticleManager : MonoBehaviour
         public Color startColor;
     }
 
-    void Awake()
-    {
-        if (Instance != null)
-        {
-            Destroy(gameObject);
-            return;
-        }
-        Instance = this;
-    }
-
     void Start()
     {
         EnsureCanvas();
         EnsureSprite();
         EnsureContainer();
         Prewarm();
-    }
-
-    void OnDestroy()
-    {
-        if (Instance == this) Instance = null;
     }
 
     void Update()

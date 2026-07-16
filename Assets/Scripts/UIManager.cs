@@ -2,6 +2,7 @@ using System.Linq;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 public class UIManager : MonoBehaviour
 {
@@ -37,7 +38,6 @@ public class UIManager : MonoBehaviour
     private InputField guessInput;
     private Button guessConfirmButton;
     private int guessCharacterLimit = 6;
-    private string currentGuess = "";
     private GameState lastState = GameState.Intro;
 
     private Text nameWarningText;
@@ -48,6 +48,7 @@ public class UIManager : MonoBehaviour
     private Sprite dotSprite;
 
     private float lastExposure = 0f;
+    private int lastRevealedMask = 0;
 
     private Button winRetryButton;
     private Button loseRetryButton;
@@ -139,60 +140,6 @@ public class UIManager : MonoBehaviour
         if (simulateMissButton != null) simulateMissButton.onClick.AddListener(SimulateMiss);
         if (simulateWinButton != null) simulateWinButton.onClick.AddListener(() => GameManager.Instance?.TriggerWin());
         if (simulateLoseButton != null) simulateLoseButton.onClick.AddListener(() => GameManager.Instance?.TriggerLose());
-    }
-
-    void Update()
-    {
-        if (guessPanel == null || !guessPanel.activeSelf) return;
-
-        bool changed = false;
-        if (Input.GetKeyDown(KeyCode.Backspace))
-        {
-            if (currentGuess.Length > 0)
-            {
-                currentGuess = currentGuess.Substring(0, currentGuess.Length - 1);
-                changed = true;
-            }
-        }
-        else
-        {
-            KeyCode pressed = KeyCode.None;
-            for (KeyCode k = KeyCode.A; k <= KeyCode.Z; k++)
-            {
-                if (Input.GetKeyDown(k)) { pressed = k; break; }
-            }
-            if (pressed == KeyCode.None)
-            {
-                for (KeyCode k = KeyCode.Alpha0; k <= KeyCode.Alpha9; k++)
-                {
-                    if (Input.GetKeyDown(k)) { pressed = k; break; }
-                }
-            }
-            if (pressed == KeyCode.None)
-            {
-                for (KeyCode k = KeyCode.Keypad0; k <= KeyCode.Keypad9; k++)
-                {
-                    if (Input.GetKeyDown(k)) { pressed = k; break; }
-                }
-            }
-
-            if (pressed != KeyCode.None && currentGuess.Length < guessCharacterLimit)
-            {
-                currentGuess += KeyCodeToChar(pressed);
-                changed = true;
-            }
-        }
-
-        if (changed && guessInput != null)
-            guessInput.text = currentGuess;
-    }
-
-    string KeyCodeToChar(KeyCode k)
-    {
-        if (k >= KeyCode.A && k <= KeyCode.Z) return k.ToString();
-        if (k >= KeyCode.Alpha0 && k <= KeyCode.Alpha9) return (k - KeyCode.Alpha0).ToString();
-        if (k >= KeyCode.Keypad0 && k <= KeyCode.Keypad9) return (k - KeyCode.Keypad0).ToString();
-        return "";
     }
 
     void OnStartClicked()
@@ -501,14 +448,82 @@ public class UIManager : MonoBehaviour
         var tns = TrueNameSystem.Instance ?? FindObjectOfType<TrueNameSystem>();
         if (trueNameSlots == null || tns == null || string.IsNullOrEmpty(tns.EnemyTrueName)) return;
         string name = tns.EnemyTrueName;
+        int newMask = tns.RevealedMask;
         for (int i = 0; i < trueNameSlots.Length; i++)
         {
             if (i >= name.Length) continue;
             bool revealed = tns.IsLetterRevealed(i);
-            trueNameSlots[i].text = revealed ? name[i].ToString() : "_";
-            trueNameSlots[i].color = revealed ? new Color(0.831f, 0.686f, 0.216f) : new Color(0.7f, 0.7f, 0.7f);
+            if (revealed && trueNameSlots[i].text == "_")
+            {
+                trueNameSlots[i].text = name[i].ToString();
+                trueNameSlots[i].color = new Color(0.831f, 0.686f, 0.216f);
+                StartCoroutine(RevealSlotAnimation(trueNameSlots[i], name[i].ToString()));
+            }
+            else if (!revealed)
+            {
+                trueNameSlots[i].text = "_";
+                trueNameSlots[i].color = new Color(0.7f, 0.7f, 0.7f);
+            }
         }
+        lastRevealedMask = newMask;
         UpdateRevealHint(tns.IsAllRevealed);
+        if (tns.IsAllRevealed)
+            StartCoroutine(HighlightAllSlots());
+    }
+
+    IEnumerator RevealSlotAnimation(Text slot, string letter)
+    {
+        if (slot == null) yield break;
+        RectTransform rt = slot.GetComponent<RectTransform>();
+        Vector3 baseScale = rt != null ? rt.localScale : Vector3.one;
+        Color baseColor = new Color(0.831f, 0.686f, 0.216f);
+        slot.text = letter;
+
+        float t = 0f;
+        while (t < 0.25f)
+        {
+            t += Time.unscaledDeltaTime;
+            float p = t / 0.25f;
+            if (rt != null) rt.localScale = baseScale * (1f + Mathf.Sin(p * Mathf.PI) * 0.4f);
+            Color c = baseColor;
+            c.a = Mathf.Lerp(0.5f, 1f, p);
+            slot.color = c;
+            yield return null;
+        }
+
+        if (rt != null) rt.localScale = baseScale;
+        slot.color = baseColor;
+    }
+
+    IEnumerator HighlightAllSlots()
+    {
+        if (trueNameSlots == null) yield break;
+        float t = 0f;
+        while (t < 0.6f)
+        {
+            t += Time.unscaledDeltaTime;
+            float p = t / 0.6f;
+            Color c = Color.Lerp(new Color(0.831f, 0.686f, 0.216f), Color.white, Mathf.Sin(p * Mathf.PI));
+            for (int i = 0; i < trueNameSlots.Length; i++)
+            {
+                if (trueNameSlots[i] != null)
+                    trueNameSlots[i].color = c;
+            }
+            yield return null;
+        }
+
+        for (int i = 0; i < trueNameSlots.Length; i++)
+        {
+            if (trueNameSlots[i] != null)
+                trueNameSlots[i].color = new Color(0.831f, 0.686f, 0.216f);
+        }
+    }
+
+    Vector2 GetSlotWorldPosition(Text slot)
+    {
+        if (slot == null || slot.rectTransform == null) return Vector2.zero;
+        Vector3 worldPos = slot.rectTransform.position;
+        return new Vector2(worldPos.x, worldPos.y);
     }
 
     void EnsureRevealHint()
@@ -555,6 +570,7 @@ public class UIManager : MonoBehaviour
             trueNameSlotsContainer = null;
         }
         trueNameSlots = null;
+        lastRevealedMask = 0;
         EnsureTrueNameSlots();
         UpdateTrueNameSlots(-1);
     }
@@ -605,6 +621,65 @@ public class UIManager : MonoBehaviour
         EnsurePhaseIndicator();
         if (phaseIndicatorText != null)
             phaseIndicatorText.text = "阶段 " + (phase + 1);
+    }
+
+    public void ShowPhaseTitle(int phase)
+    {
+        StartCoroutine(PhaseTitleRoutine(phase));
+    }
+
+    IEnumerator PhaseTitleRoutine(int phase)
+    {
+        Canvas canvas = FindObjectOfType<Canvas>();
+        if (canvas == null) yield break;
+
+        GameObject go = new GameObject("PhaseTitle", typeof(RectTransform), typeof(Text));
+        go.transform.SetParent(canvas.transform, false);
+        go.transform.SetAsLastSibling();
+        RectTransform rt = go.GetComponent<RectTransform>();
+        rt.anchorMin = new Vector2(0.5f, 0.5f);
+        rt.anchorMax = new Vector2(0.5f, 0.5f);
+        rt.pivot = new Vector2(0.5f, 0.5f);
+        rt.anchoredPosition = Vector2.zero;
+        rt.sizeDelta = new Vector2(800f, 120f);
+        rt.localScale = Vector3.one * 1.5f;
+
+        Text txt = go.GetComponent<Text>();
+        txt.font = GetUIFont();
+        txt.fontSize = 64;
+        txt.color = new Color(0.831f, 0.686f, 0.216f, 0f);
+        txt.alignment = TextAnchor.MiddleCenter;
+        txt.text = "第 " + (phase + 1) + " 层真名";
+        Outline outline = go.AddComponent<Outline>();
+        outline.effectColor = new Color(0f, 0f, 0f, 0.8f);
+        outline.effectDistance = new Vector2(3f, -3f);
+
+        float t = 0f;
+        while (t < 0.4f)
+        {
+            t += Time.unscaledDeltaTime;
+            float p = t / 0.4f;
+            Color c = txt.color;
+            c.a = Mathf.Lerp(0f, 1f, p);
+            txt.color = c;
+            rt.localScale = Vector3.Lerp(Vector3.one * 1.5f, Vector3.one, p);
+            yield return null;
+        }
+
+        yield return new WaitForSecondsRealtime(1.2f);
+
+        t = 0f;
+        while (t < 0.4f)
+        {
+            t += Time.unscaledDeltaTime;
+            float p = t / 0.4f;
+            Color c = txt.color;
+            c.a = Mathf.Lerp(1f, 0f, p);
+            txt.color = c;
+            yield return null;
+        }
+
+        Destroy(go);
     }
 
     void EnsureHolyLightText()
@@ -715,7 +790,7 @@ public class UIManager : MonoBehaviour
         {
             if (guessPanel.transform.Find("InputBox") != null)
             {
-                if (guessInput != null) guessInput.interactable = false;
+                if (guessInput != null) guessInput.interactable = true;
                 return;
             }
             Destroy(guessPanel);
@@ -802,7 +877,7 @@ public class UIManager : MonoBehaviour
         guessCharacterLimit = TrueNameSystem.Instance != null && !string.IsNullOrEmpty(TrueNameSystem.Instance.EnemyTrueName)
             ? TrueNameSystem.Instance.EnemyTrueName.Length
             : 6;
-        field.interactable = false;
+        field.interactable = true;
         guessInput = field;
 
         GameObject btn = new GameObject("ConfirmButton", typeof(RectTransform), typeof(Image), typeof(Button));
@@ -850,7 +925,7 @@ public class UIManager : MonoBehaviour
         bool autoAdvance = (GameManager.Instance?.config?.autoAdvanceOnAllRevealed ?? true) && tns != null && tns.IsAllRevealed;
         if (autoAdvance)
         {
-            currentGuess = tns.EnemyTrueName;
+            if (guessInput != null) guessInput.text = tns.EnemyTrueName;
             OnGuessConfirm();
             return;
         }
@@ -863,21 +938,27 @@ public class UIManager : MonoBehaviour
             return;
         }
         guessPanel.SetActive(true);
-        currentGuess = "";
-        if (guessInput != null) guessInput.text = "";
+        if (guessInput != null)
+        {
+            guessInput.text = "";
+            guessInput.ActivateInputField();
+            if (EventSystem.current != null)
+                EventSystem.current.SetSelectedGameObject(guessInput.gameObject);
+            else
+                Debug.LogWarning("[UIManager] EventSystem is missing. Guess panel input may not work.");
+        }
         Time.timeScale = GameManager.Instance?.config?.guessTimeScale ?? 0.2f;
     }
 
     void OnGuessConfirm()
     {
         var tns = TrueNameSystem.Instance ?? FindObjectOfType<TrueNameSystem>();
-        if (tns != null)
+        if (tns != null && guessInput != null)
         {
-            bool correct = tns.GuessTrueName(currentGuess);
+            bool correct = tns.GuessTrueName(guessInput.text);
             if (!correct)
                 DialogueController.Instance?.Show("不是这个真名。暴露度 +25%。", 2.5f);
         }
-        currentGuess = "";
         if (guessInput != null) guessInput.text = "";
         if (guessPanel != null) guessPanel.SetActive(false);
         Time.timeScale = 1f;
@@ -905,7 +986,18 @@ public class UIManager : MonoBehaviour
         lastExposure = value;
     }
 
-    void ShowFloatingText(string text, Vector2 anchoredPosition, Color color)
+    public void ShowFloatingTextAtWord(string text, RectTransform wordRect, Color color, float yOffset = 60f)
+    {
+        Canvas canvas = FindObjectOfType<Canvas>();
+        if (canvas == null || wordRect == null) return;
+        CanvasScaler scaler = canvas.GetComponent<CanvasScaler>();
+        Vector2 refRes = scaler != null ? scaler.referenceResolution : new Vector2(1920, 1080);
+        Vector2 centerOffset = new Vector2(refRes.x * 0.5f, refRes.y * 0.5f);
+        Vector2 pos = wordRect.anchoredPosition - centerOffset + new Vector2(0, yOffset);
+        ShowFloatingText(text, pos, color);
+    }
+
+    public void ShowFloatingText(string text, Vector2 anchoredPosition, Color color)
     {
         Canvas canvas = FindObjectOfType<Canvas>();
         if (canvas == null) return;

@@ -81,6 +81,7 @@ public class PhaseManager : MonoBehaviour
         yield return new WaitForSecondsRealtime(0.3f);
 
         EnterPhase(targetIndex, true);
+        UIManager.Instance?.ShowPhaseTitle(targetIndex);
 
         string line = GetRandomLine(phases[targetIndex]);
         if (!string.IsNullOrWhiteSpace(line))

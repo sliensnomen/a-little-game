@@ -27,6 +27,7 @@ public class WordProjectile : MonoBehaviour
 
     private float baseY;
     private float oscillationTime;
+    private Text promptText;
 
     public void Init(LanguageType lang, WordPattern pat, WordType type, string word, float sp, Vector2 startPos)
     {
@@ -42,6 +43,7 @@ public class WordProjectile : MonoBehaviour
         oscillationTime = 0f;
         rectTransform.anchoredPosition = startPos;
         gameObject.SetActive(true);
+        ClearPrompt();
     }
 
     void SetVisual(WordType type, LanguageType lang)
@@ -76,6 +78,67 @@ public class WordProjectile : MonoBehaviour
         }
     }
 
+    void EnsurePrompt()
+    {
+        if (promptText != null) return;
+        GameObject go = new GameObject("Prompt", typeof(RectTransform), typeof(Text));
+        go.transform.SetParent(transform, false);
+        RectTransform rt = go.GetComponent<RectTransform>();
+        rt.anchorMin = new Vector2(0.5f, 1f);
+        rt.anchorMax = new Vector2(0.5f, 1f);
+        rt.pivot = new Vector2(0.5f, 0f);
+        rt.anchoredPosition = new Vector2(0f, 8f);
+        rt.sizeDelta = new Vector2(80f, 30f);
+        Text txt = go.GetComponent<Text>();
+        txt.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        txt.fontSize = 20;
+        txt.alignment = TextAnchor.MiddleCenter;
+        txt.fontStyle = FontStyle.Bold;
+        promptText = txt;
+        go.SetActive(false);
+    }
+
+    public void UpdatePrompt()
+    {
+        EnsurePrompt();
+        if (promptText == null) return;
+
+        if (wordType == WordType.Dual)
+        {
+            promptText.text = "Q+E";
+            promptText.color = new Color(0.706f, 0.343f, 0.522f);
+            promptText.gameObject.SetActive(true);
+        }
+        else if (wordType == WordType.Interference)
+        {
+            promptText.text = "E";
+            promptText.color = new Color(0.5f, 0.5f, 0.5f);
+            promptText.gameObject.SetActive(true);
+        }
+        else if (language == LanguageType.Sacred)
+        {
+            promptText.text = "Q";
+            promptText.color = new Color(0.831f, 0.686f, 0.216f);
+            promptText.gameObject.SetActive(true);
+        }
+        else if (language == LanguageType.Demonic)
+        {
+            promptText.text = "E";
+            promptText.color = new Color(0.58f, 0f, 0.827f);
+            promptText.gameObject.SetActive(true);
+        }
+        else
+        {
+            promptText.gameObject.SetActive(false);
+        }
+    }
+
+    public void ClearPrompt()
+    {
+        if (promptText != null)
+            promptText.gameObject.SetActive(false);
+    }
+
     void Update()
     {
         if (State == WordState.Fly)
@@ -92,6 +155,7 @@ public class WordProjectile : MonoBehaviour
                 State = WordState.Hold;
                 holdElapsed = 0f;
                 WordSpawner.Instance?.RegisterHold(this);
+                UpdatePrompt();
                 StartCoroutine(HoldRoutine());
             }
         }

@@ -1,18 +1,8 @@
 using System;
 using UnityEngine;
 
-public class AudioManager : MonoBehaviour
+public class AudioManager : MonoSingleton<AudioManager>
 {
-    public static AudioManager Instance { get; private set; }
-
-    public static void EnsureExists()
-    {
-        if (Instance != null) return;
-        if (FindObjectOfType<AudioManager>() != null) return;
-        GameObject go = new GameObject("AudioManager");
-        go.AddComponent<AudioManager>();
-    }
-
     public AudioClip hitClip;
     public AudioClip missClip;
     public AudioClip domainClip;
@@ -21,14 +11,8 @@ public class AudioManager : MonoBehaviour
 
     private AudioSource source;
 
-    void Awake()
+    protected override void OnInit()
     {
-        if (Instance != null)
-        {
-            Destroy(gameObject);
-            return;
-        }
-        Instance = this;
         source = gameObject.AddComponent<AudioSource>();
         source.playOnAwake = false;
     }
