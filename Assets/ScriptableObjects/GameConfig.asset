@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7774c2e6043f0431fbaaab2fe94cef2b, type: 3}
+  m_Name: GameConfig
+  m_EditorClassIdentifier: 
+  enemyTrueName: MIRROR
+  maxTrueNameLength: 6
+  playerExposureMax: 100
+  exposurePerMiss: 4
+  exposurePerWrongHit: 8
+  exposurePerWrongGuess: 25
+  domainChargePerReveal: 8
+  domainChargePerDual: 15
+  domainChargePerECounter: 12
+  domainChargePerExtraReveal: 12
+  domainChargePerDualChant: 10
+  domainExposureRelief: 10
+  holyLightMax: 100
+  holyLightRegenPerSecond: 5
+  holyLightBlockCost: 20
+  holyLightDepletionCooldown: 3
+  exposureLayerMax: 3
+  exposureLayerRelief: 5
+  exposureLayerExtraReveal: 1
+  guessTimeScale: 0.2
+  comboThreshold: 3
+  dualWordWindow: 0.15
+  interferenceChances:
+  - 0.05
+  - 0.1
+  - 0.15
+  baseWordSpeed: 220
+  patternBWordSpeed: 300
+  patternCWordSpeed: 130
+  patternBSpawnInterval: 0.6
+  patternCMinLength: 6
+  patternCMaxLength: 8
+  maxPlayerNameLength: 12
+  patternBFailureExposure: 8
+  patternCFailureExposure: 15
+  patternCSuccessReveal: 2
+  eCounterWindow: 0.2
+  dualChantHoldTime: 3
+  domainChargePerDualChant: 10

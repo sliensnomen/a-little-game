@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:yousandi.cn,2023:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aad9780f9c8c74311bd7fb836c25a4f1, type: 3}
+  m_Name: Phase_2
+  m_EditorClassIdentifier: 
+  letterThreshold: 3
+  speedMultiplier: 1.65
+  spawnInterval: 1.8
+  backgroundTint: {r: 0.04, g: 0.03, b: 0.06, a: 0}
+  dialogues:
+  - 你念圣文的速度，和那个老疯子一样。
+  - ……别拿我和辛美尔比。他可不会剥你的真名。
