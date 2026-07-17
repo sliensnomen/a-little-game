@@ -42,6 +42,7 @@ public class CinematicCamera : MonoBehaviour
             InitFrame();
             if (!frameInitialized) return;
         }
+        TryReparentWorldObjects();
         ApplyDrift();
     }
 
@@ -85,28 +86,41 @@ public class CinematicCamera : MonoBehaviour
         baseAnchoredPosition = worldFrame.anchoredPosition3D;
         baseScale = worldFrame.localScale;
 
-        ReparentWorld("WitchKingPlaceholder");
-        ReparentWorld("MirrorPlaceholder");
-        ReparentWorld("ParallaxBackground");
-
-        var spawner = WordSpawner.Instance ?? FindObjectOfType<WordSpawner>();
-        if (spawner != null && spawner.wordContainer != null)
-            Reparent(spawner.wordContainer);
+        TryReparentWorldObjects();
 
         frameInitialized = true;
     }
 
-    void ReparentWorld(string name)
+    void TryReparentWorldObjects()
     {
-        GameObject go = GameObject.Find(name);
-        if (go != null) Reparent(go.GetComponent<RectTransform>());
+        if (worldFrame == null) return;
+
+        int index = 0;
+        if (TryReparentWorld("Background", index)) index++;
+        if (TryReparentWorld("ParallaxBackground", index)) index++;
+        if (TryReparentWorld("WitchKingPlaceholder", index)) index++;
+        if (TryReparentWorld("MirrorPlaceholder", index)) index++;
+        if (TryReparentWorld("DefenseLine", index)) index++;
+
+        var spawner = WordSpawner.Instance ?? FindObjectOfType<WordSpawner>();
+        if (spawner != null && spawner.wordContainer != null)
+            Reparent(spawner.wordContainer, index);
     }
 
-    void Reparent(RectTransform rt)
+    bool TryReparentWorld(string name, int index)
+    {
+        GameObject go = GameObject.Find(name);
+        if (go == null) return false;
+        Reparent(go.GetComponent<RectTransform>(), index);
+        return true;
+    }
+
+    void Reparent(RectTransform rt, int index)
     {
         if (rt == null || worldFrame == null) return;
-        if (rt.parent == worldFrame) return;
-        rt.SetParent(worldFrame, false);
+        if (rt.parent != worldFrame)
+            rt.SetParent(worldFrame, false);
+        rt.SetSiblingIndex(index);
     }
 
     void ApplyDrift()

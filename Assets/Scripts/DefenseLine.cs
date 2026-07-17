@@ -34,8 +34,9 @@ public class DefenseLine : MonoBehaviour
         if (core == null) core = gameObject.AddComponent<Image>();
 
         Canvas canvas = FindObjectOfType<Canvas>();
-        if (canvas != null && transform.parent != canvas.transform)
-            transform.SetParent(canvas.transform, false);
+        Transform desiredParent = CinematicCamera.Instance?.worldFrame ?? canvas.transform;
+        if (desiredParent != null && transform.parent != desiredParent)
+            transform.SetParent(desiredParent, false);
 
         rectTransform.anchorMin = new Vector2(0, 0.5f);
         rectTransform.anchorMax = new Vector2(0, 0.5f);
@@ -46,27 +47,30 @@ public class DefenseLine : MonoBehaviour
         core.color = lineColor;
         core.raycastTarget = false;
 
-        int siblingIndex = 0;
-        GameObject player = GameObject.Find("WitchKingPlaceholder");
-        GameObject enemy = GameObject.Find("MirrorPlaceholder");
-        GameObject wordContainer = GameObject.Find("WordContainer");
-        GameObject bg = GameObject.Find("Background");
+        if (transform.parent == canvas.transform)
+        {
+            int siblingIndex = 0;
+            GameObject player = GameObject.Find("WitchKingPlaceholder");
+            GameObject enemy = GameObject.Find("MirrorPlaceholder");
+            GameObject wordContainer = GameObject.Find("WordContainer");
+            GameObject bg = GameObject.Find("Background");
 
-        if (player != null || enemy != null)
-        {
-            int playerIndex = player != null ? player.transform.GetSiblingIndex() : -1;
-            int enemyIndex = enemy != null ? enemy.transform.GetSiblingIndex() : -1;
-            siblingIndex = Mathf.Max(playerIndex, enemyIndex) + 1;
+            if (player != null || enemy != null)
+            {
+                int playerIndex = player != null ? player.transform.GetSiblingIndex() : -1;
+                int enemyIndex = enemy != null ? enemy.transform.GetSiblingIndex() : -1;
+                siblingIndex = Mathf.Max(playerIndex, enemyIndex) + 1;
+            }
+            else if (wordContainer != null)
+            {
+                siblingIndex = wordContainer.transform.GetSiblingIndex();
+            }
+            else if (bg != null)
+            {
+                siblingIndex = bg.transform.GetSiblingIndex() + 1;
+            }
+            transform.SetSiblingIndex(siblingIndex);
         }
-        else if (wordContainer != null)
-        {
-            siblingIndex = wordContainer.transform.GetSiblingIndex();
-        }
-        else if (bg != null)
-        {
-            siblingIndex = bg.transform.GetSiblingIndex() + 1;
-        }
-        transform.SetSiblingIndex(siblingIndex);
 
         GameObject glowGO = transform.Find("Glow")?.gameObject;
         if (glowGO == null)
