@@ -35,6 +35,7 @@ public class GameConfig : ScriptableObject
     public float dualWordWindow = 0.15f;
     public float eCounterWindow = 0.2f;
     public float dualChantHoldTime = 3f;
+    public float inputBuffer = 0.08f;
     public List<float> interferenceChances = new List<float> { 0.05f, 0.1f, 0.15f };
     public float baseWordSpeed = 220f;
     public float patternBWordSpeed = 300f;

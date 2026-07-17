@@ -33,6 +33,9 @@ public class WordSpawner : MonoBehaviour
     private DefenseLine defenseLine;
     private GameManager gameManager;
 
+    private float lastQInputTime = -999f;
+    private float lastEInputTime = -999f;
+
     TrueNameSystem TrueNameSystemInstance => trueNameSystem ?? (trueNameSystem = FindObjectOfType<TrueNameSystem>());
 
     void Awake()
@@ -211,10 +214,30 @@ public class WordSpawner : MonoBehaviour
         WordProjectile wp = GetWord();
         if (wp == null) return;
         wp.defenseLineX = defenseLineX;
-        Vector2 startPos = new Vector2(spawnRightX, Random.Range(minY, maxY) - 540f);
+        Vector2 startPos = new Vector2(spawnRightX, GetSpawnY());
         wp.Init(lang, pattern, type, word, speed * phaseSpeedMultiplier, startPos);
 
         activeWords.Add(wp);
+    }
+
+    float GetSpawnY()
+    {
+        const float minSep = 80f;
+        for (int attempt = 0; attempt < 8; attempt++)
+        {
+            float y = Random.Range(minY, maxY) - 540f;
+            bool overlap = false;
+            foreach (var word in activeWords)
+            {
+                if (word != null && word.State == WordState.Fly && Mathf.Abs(word.rectTransform.anchoredPosition.y - y) < minSep)
+                {
+                    overlap = true;
+                    break;
+                }
+            }
+            if (!overlap) return y;
+        }
+        return Random.Range(minY, maxY) - 540f;
     }
 
     float GetInterferenceChance()
@@ -254,12 +277,28 @@ public class WordSpawner : MonoBehaviour
 
     public void RegisterHold(WordProjectile word)
     {
-        if (!holdQueue.Contains(word))
-            holdQueue.Enqueue(word);
+        if (holdQueue.Contains(word)) return;
+        holdQueue.Enqueue(word);
+
+        float now = Time.time;
+        float buffer = config != null ? config.inputBuffer : 0f;
+        if (buffer > 0f && now - lastQInputTime <= buffer)
+        {
+            lastQInputTime = -999f;
+            OnQPressed();
+            return;
+        }
+        if (buffer > 0f && now - lastEInputTime <= buffer)
+        {
+            lastEInputTime = -999f;
+            OnEPressed();
+            return;
+        }
     }
 
     void OnQPressed()
     {
+        lastQInputTime = Time.time;
         if (holdQueue.Count == 0) return;
         foreach (var word in GetHoldWords())
         {
@@ -284,6 +323,7 @@ public class WordSpawner : MonoBehaviour
 
     void OnEPressed()
     {
+        lastEInputTime = Time.time;
         if (holdQueue.Count == 0) return;
         foreach (var word in GetHoldWords())
         {
