@@ -77,6 +77,7 @@ public class UIManager : MonoBehaviour
         FontManager.EnsureExists();
         CinematicOverlay.EnsureExists();
         CinematicCamera.EnsureExists();
+        AudioManager.EnsureExists();
 
         if (GameManager.Instance != null)
         {
@@ -276,10 +277,12 @@ public class UIManager : MonoBehaviour
             case GameState.Intro:
                 CinematicOverlay.Instance?.SetLetterbox(0f);
                 startPanel.SetActive(true);
+                AudioManager.Instance?.PlayBGM();
                 break;
             case GameState.Combat:
                 CinematicOverlay.Instance?.SetLetterbox(CinematicOverlay.Instance != null ? CinematicOverlay.Instance.combatLetterboxRatio : 0.12f);
                 hudPanel.SetActive(true);
+                AudioManager.Instance?.PlayBGM();
                 EnsureTrueNameSlots();
                 UpdateTrueNameSlots(-1);
                 EnsureExposureLayerDots();
@@ -300,13 +303,16 @@ public class UIManager : MonoBehaviour
             case GameState.Domain:
                 CinematicOverlay.Instance?.SetLetterbox(CinematicOverlay.Instance != null ? CinematicOverlay.Instance.combatLetterboxRatio : 0.12f);
                 hudPanel.SetActive(true);
+                AudioManager.Instance?.PlayBGM();
                 break;
             case GameState.Win:
                 CinematicOverlay.Instance?.SetLetterbox(CinematicOverlay.Instance != null ? CinematicOverlay.Instance.endLetterboxRatio : 0.18f);
+                AudioManager.Instance?.StopBGM();
                 StartCoroutine(WinSequence());
                 break;
             case GameState.Lose:
                 CinematicOverlay.Instance?.SetLetterbox(CinematicOverlay.Instance != null ? CinematicOverlay.Instance.endLetterboxRatio : 0.18f);
+                AudioManager.Instance?.StopBGM();
                 StartCoroutine(LoseSequence());
                 break;
         }

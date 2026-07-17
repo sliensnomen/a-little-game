@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using UnityEngine;
 
 public class AudioManager : MonoSingleton<AudioManager>
@@ -9,12 +10,25 @@ public class AudioManager : MonoSingleton<AudioManager>
     public AudioClip typewriterClip;
     public AudioClip shatterClip;
 
+    [Header("BGM")]
+    public AudioClip bgmClip;
+    public float bgmVolume = 0.7f;
+    public float bgmFadeDuration = 0.8f;
+    public bool bgmLoop = true;
+
     private AudioSource source;
+    private AudioSource bgmSource;
+    private Coroutine bgmFadeRoutine;
 
     protected override void OnInit()
     {
         source = gameObject.AddComponent<AudioSource>();
         source.playOnAwake = false;
+
+        bgmSource = gameObject.AddComponent<AudioSource>();
+        bgmSource.playOnAwake = false;
+        bgmSource.loop = true;
+        bgmSource.volume = 0f;
     }
 
     public void PlayHit()
@@ -45,6 +59,138 @@ public class AudioManager : MonoSingleton<AudioManager>
     {
         if (shatterClip == null) shatterClip = GenerateShatterClip();
         if (source != null) source.PlayOneShot(shatterClip);
+    }
+
+    public void PlayBGM(AudioClip clip = null, bool fade = true)
+    {
+        if (clip == null) clip = GetDefaultBGM();
+        if (clip == null) return;
+
+        float targetVolume = GetBGMVolume();
+
+        if (bgmSource.isPlaying && bgmSource.clip == clip)
+        {
+            if (fade) FadeTo(targetVolume, bgmFadeDuration);
+            else bgmSource.volume = targetVolume;
+            return;
+        }
+
+        if (fade)
+        {
+            if (bgmFadeRoutine != null) StopCoroutine(bgmFadeRoutine);
+            bgmFadeRoutine = StartCoroutine(FadeSwitchBGM(clip, targetVolume, bgmFadeDuration));
+        }
+        else
+        {
+            bgmSource.Stop();
+            bgmSource.clip = clip;
+            bgmSource.loop = bgmLoop;
+            bgmSource.volume = targetVolume;
+            bgmSource.Play();
+        }
+    }
+
+    public void StopBGM(bool fade = true)
+    {
+        if (bgmSource == null || !bgmSource.isPlaying) return;
+
+        if (fade)
+        {
+            if (bgmFadeRoutine != null) StopCoroutine(bgmFadeRoutine);
+            bgmFadeRoutine = StartCoroutine(FadeToAndStop(bgmFadeDuration));
+        }
+        else
+        {
+            bgmSource.Stop();
+            bgmSource.volume = 0f;
+        }
+    }
+
+    public void SetBGMVolume(float volume)
+    {
+        bgmVolume = Mathf.Clamp01(volume);
+        if (bgmSource != null && bgmSource.isPlaying)
+            bgmSource.volume = bgmVolume;
+    }
+
+    AudioClip GetDefaultBGM()
+    {
+        if (bgmClip != null) return bgmClip;
+        bgmClip = Resources.Load<AudioClip>("Audio/BGM/dark-mantras");
+        return bgmClip;
+    }
+
+    float GetBGMVolume()
+    {
+        var config = GameManager.Instance?.config;
+        if (config != null) return Mathf.Clamp01(config.bgmVolume);
+        return Mathf.Clamp01(bgmVolume);
+    }
+
+    void FadeTo(float target, float duration)
+    {
+        if (bgmFadeRoutine != null) StopCoroutine(bgmFadeRoutine);
+        bgmFadeRoutine = StartCoroutine(FadeVolumeRoutine(bgmSource, bgmSource.volume, target, duration));
+    }
+
+    IEnumerator FadeVolumeRoutine(AudioSource audioSource, float from, float to, float duration)
+    {
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            float t = duration > 0f ? elapsed / duration : 1f;
+            audioSource.volume = Mathf.Lerp(from, to, t);
+            yield return null;
+        }
+        audioSource.volume = to;
+    }
+
+    IEnumerator FadeSwitchBGM(AudioClip clip, float targetVolume, float duration)
+    {
+        if (bgmSource.isPlaying)
+        {
+            float start = bgmSource.volume;
+            float elapsed = 0f;
+            while (elapsed < duration)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                float t = duration > 0f ? elapsed / duration : 1f;
+                bgmSource.volume = Mathf.Lerp(start, 0f, t);
+                yield return null;
+            }
+            bgmSource.Stop();
+        }
+
+        bgmSource.clip = clip;
+        bgmSource.loop = bgmLoop;
+        bgmSource.volume = 0f;
+        bgmSource.Play();
+
+        float e = 0f;
+        while (e < duration)
+        {
+            e += Time.unscaledDeltaTime;
+            float t = duration > 0f ? e / duration : 1f;
+            bgmSource.volume = Mathf.Lerp(0f, targetVolume, t);
+            yield return null;
+        }
+        bgmSource.volume = targetVolume;
+    }
+
+    IEnumerator FadeToAndStop(float duration)
+    {
+        float start = bgmSource.volume;
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+            float t = duration > 0f ? elapsed / duration : 1f;
+            bgmSource.volume = Mathf.Lerp(start, 0f, t);
+            yield return null;
+        }
+        bgmSource.Stop();
+        bgmSource.volume = 0f;
     }
 
     AudioClip GenerateHitClip()

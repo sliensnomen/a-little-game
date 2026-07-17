@@ -48,4 +48,8 @@ public class GameConfig : ScriptableObject
     public float patternBFailureExposure = 8f;
     public float patternCFailureExposure = 15f;
     public float patternCSuccessReveal = 2f;
+
+    [Header("Audio")]
+    public float bgmVolume = 0.7f;
+    public float bgmFadeDuration = 0.8f;
 }
