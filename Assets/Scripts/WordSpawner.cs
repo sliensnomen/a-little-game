@@ -364,6 +364,8 @@ public class WordSpawner : MonoBehaviour
         DomainVisual.Instance?.Play();
         CameraShake.Instance?.Shake(0.18f, 0.3f);
         SilhouetteDirector.Instance?.playerSilhouette?.TriggerAttack();
+        CinematicCamera.Instance?.SlowMotion(0.1f, 0.2f);
+        CinematicCamera.Instance?.Zoom(1.1f, 0.25f);
     }
 
     bool TryDualWord(WordProjectile word)
@@ -464,6 +466,17 @@ public class WordSpawner : MonoBehaviour
         if (reveal)
         {
             SilhouetteDirector.Instance?.playerSilhouette?.TriggerAttack();
+            if (addLayer)
+            {
+                CinematicCamera.Instance?.SlowMotion(0.15f, 0.15f);
+                CinematicCamera.Instance?.Zoom(1.08f, 0.2f);
+                CinematicCamera.Instance?.Punch(Vector2.right, 12f, 0.12f);
+            }
+            else
+            {
+                CinematicCamera.Instance?.Punch(Vector2.right, 8f, 0.08f);
+                CinematicCamera.Instance?.Zoom(1.03f, 0.1f);
+            }
         }
         StartCoroutine(HitPunchAndRelease(word));
     }
@@ -487,6 +500,7 @@ public class WordSpawner : MonoBehaviour
         AudioManager.Instance?.PlayMiss();
         SilhouetteDirector.Instance?.enemySilhouette?.TriggerAttack();
         SilhouetteDirector.Instance?.playerSilhouette?.TriggerTakeHit();
+        CinematicCamera.Instance?.Punch(Vector2.left, 12f, 0.12f);
 
         string feedbackText = wrongInput ? "失误" : "Miss";
         Color feedbackColor = new Color(1f, 0.25f, 0.25f);

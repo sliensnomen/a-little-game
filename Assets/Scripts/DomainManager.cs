@@ -75,6 +75,7 @@ public class DomainManager : MonoBehaviour
         DomainVisual.Instance?.Play();
         ParticleManager.Instance?.PlayDomain();
         AudioManager.Instance?.PlayDomain();
+        CinematicCamera.Instance?.Zoom(1.1f, 0.4f);
 
         yield return new WaitForSecondsRealtime(3f);
 

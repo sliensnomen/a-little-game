@@ -76,12 +76,11 @@ public class PhaseManager : MonoBehaviour
     {
         transitioning = true;
 
-        float originalTimeScale = Time.timeScale;
-        Time.timeScale = 0f;
+        CinematicCamera.Instance?.SlowMotion(0f, 0.3f);
         yield return new WaitForSecondsRealtime(0.3f);
 
         EnterPhase(targetIndex, true);
-        UIManager.Instance?.ShowPhaseTitle(targetIndex);
+        CinematicCamera.Instance?.Zoom(1.05f, 0.3f);
 
         string line = GetRandomLine(phases[targetIndex]);
         if (!string.IsNullOrWhiteSpace(line))
@@ -94,8 +93,31 @@ public class PhaseManager : MonoBehaviour
             yield return new WaitForSecondsRealtime(0.8f);
         }
 
-        Time.timeScale = originalTimeScale;
         transitioning = false;
+    }
+
+    void SetPhaseVignette(int phase)
+    {
+        if (CinematicOverlay.Instance == null) return;
+        Color tint;
+        float alpha;
+        switch (phase)
+        {
+            default:
+            case 0:
+                tint = new Color(0.2f, 0.1f, 0.3f);
+                alpha = 0.25f;
+                break;
+            case 1:
+                tint = new Color(0.3f, 0.0f, 0.2f);
+                alpha = 0.4f;
+                break;
+            case 2:
+                tint = new Color(0.4f, 0.0f, 0.05f);
+                alpha = 0.55f;
+                break;
+        }
+        CinematicOverlay.Instance.SetVignette(tint, alpha, 0.6f);
     }
 
     string GetRandomLine(PhaseData data)
@@ -112,6 +134,8 @@ public class PhaseManager : MonoBehaviour
 
         GameManager.Instance?.SetCurrentPhase(index);
         OnPhaseChanged?.Invoke(index);
+
+        SetPhaseVignette(index);
 
         if (backgroundImage != null)
         {

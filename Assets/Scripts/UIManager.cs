@@ -75,6 +75,8 @@ public class UIManager : MonoBehaviour
     void Start()
     {
         FontManager.EnsureExists();
+        CinematicOverlay.EnsureExists();
+        CinematicCamera.EnsureExists();
 
         if (GameManager.Instance != null)
         {
@@ -272,9 +274,11 @@ public class UIManager : MonoBehaviour
         switch (state)
         {
             case GameState.Intro:
+                CinematicOverlay.Instance?.SetLetterbox(0f);
                 startPanel.SetActive(true);
                 break;
             case GameState.Combat:
+                CinematicOverlay.Instance?.SetLetterbox(CinematicOverlay.Instance != null ? CinematicOverlay.Instance.combatLetterboxRatio : 0.12f);
                 hudPanel.SetActive(true);
                 EnsureTrueNameSlots();
                 UpdateTrueNameSlots(-1);
@@ -294,12 +298,15 @@ public class UIManager : MonoBehaviour
                 }
                 break;
             case GameState.Domain:
+                CinematicOverlay.Instance?.SetLetterbox(CinematicOverlay.Instance != null ? CinematicOverlay.Instance.combatLetterboxRatio : 0.12f);
                 hudPanel.SetActive(true);
                 break;
             case GameState.Win:
+                CinematicOverlay.Instance?.SetLetterbox(CinematicOverlay.Instance != null ? CinematicOverlay.Instance.endLetterboxRatio : 0.18f);
                 StartCoroutine(WinSequence());
                 break;
             case GameState.Lose:
+                CinematicOverlay.Instance?.SetLetterbox(CinematicOverlay.Instance != null ? CinematicOverlay.Instance.endLetterboxRatio : 0.18f);
                 StartCoroutine(LoseSequence());
                 break;
         }
@@ -983,6 +990,7 @@ public class UIManager : MonoBehaviour
             if (rt != null) pos = rt.anchoredPosition + new Vector2(0f, 80f);
         }
         ShowFloatingText(text, pos, color);
+        CinematicOverlay.Instance?.SetVignetteExposure(value / 100f, 0.3f);
         lastExposure = value;
     }
 
