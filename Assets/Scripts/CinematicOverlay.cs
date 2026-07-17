@@ -60,20 +60,20 @@ public class CinematicOverlay : MonoBehaviour
         if (topBar != null && bottomBar != null) return;
         if (canvas == null) return;
 
-        topBar = CreateBar("LetterboxTop", Vector2.one, Vector2.zero, TextAnchor.UpperCenter);
-        bottomBar = CreateBar("LetterboxBottom", Vector2.zero, Vector2.one, TextAnchor.LowerCenter);
+        topBar = CreateBar("LetterboxTop", Vector2.one, TextAnchor.UpperCenter);
+        bottomBar = CreateBar("LetterboxBottom", Vector2.zero, TextAnchor.LowerCenter);
     }
 
-    Image CreateBar(string name, Vector2 anchorMin, Vector2 anchorMax, TextAnchor alignment)
+    Image CreateBar(string name, Vector2 anchor, TextAnchor alignment)
     {
         GameObject go = new GameObject(name, typeof(RectTransform), typeof(Image));
         go.transform.SetParent(canvas.transform, false);
         go.transform.SetAsLastSibling();
 
         RectTransform rt = go.GetComponent<RectTransform>();
-        rt.anchorMin = new Vector2(0f, anchorMin.y);
-        rt.anchorMax = new Vector2(1f, anchorMax.y);
-        rt.pivot = new Vector2(0.5f, anchorMin.y);
+        rt.anchorMin = new Vector2(0f, anchor.y);
+        rt.anchorMax = new Vector2(1f, anchor.y);
+        rt.pivot = new Vector2(0.5f, anchor.y);
         rt.anchoredPosition = Vector2.zero;
         rt.sizeDelta = new Vector2(0f, 0f);
 

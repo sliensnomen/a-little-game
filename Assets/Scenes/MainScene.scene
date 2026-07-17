@@ -550,7 +550,7 @@ MonoBehaviour:
     m_FontStyle: 0
     m_BestFit: 0
     m_MinSize: 10
-    m_MaxSize: 40
+    m_MaxSize: 60
     m_Alignment: 4
     m_AlignByGeometry: 0
     m_RichText: 1
@@ -708,6 +708,8 @@ MonoBehaviour:
   domainColor: {r: 0.831, g: 0.686, b: 0.216, a: 1}
   breathSpeed: 1.5
   breathAmount: 0.03
+  shakeEnabled: 0
+  shakeIntensity: 3
 --- !u!114 &417871905
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -770,6 +772,22 @@ MonoBehaviour:
   - {fileID: 3494838311883414522, guid: 71f2199bbf40148f79f9e5a5de684d6b, type: 3}
   fps: 10
   loop: 1
+  attackFrames:
+  - {fileID: 3952881655699627471, guid: 433a0922a0f314413b191547f0de7427, type: 3}
+  - {fileID: -4788779221266462134, guid: 433a0922a0f314413b191547f0de7427, type: 3}
+  - {fileID: -2823974064121456956, guid: 433a0922a0f314413b191547f0de7427, type: 3}
+  - {fileID: 7886786816030906213, guid: 433a0922a0f314413b191547f0de7427, type: 3}
+  - {fileID: -3712048558303958216, guid: 433a0922a0f314413b191547f0de7427, type: 3}
+  - {fileID: 18879233704355474, guid: 433a0922a0f314413b191547f0de7427, type: 3}
+  - {fileID: 6699113228407373329, guid: 433a0922a0f314413b191547f0de7427, type: 3}
+  - {fileID: 7655944349879991545, guid: 433a0922a0f314413b191547f0de7427, type: 3}
+  attackFps: 12
+  hitFrames:
+  - {fileID: -5875617239790200275, guid: 6d249095aaabd4102bfd1d02e1f297c0, type: 3}
+  - {fileID: 8389061531282238138, guid: 6d249095aaabd4102bfd1d02e1f297c0, type: 3}
+  - {fileID: 6153989577696167094, guid: 6d249095aaabd4102bfd1d02e1f297c0, type: 3}
+  - {fileID: -359499721491491740, guid: 6d249095aaabd4102bfd1d02e1f297c0, type: 3}
+  hitFps: 12
 --- !u!1 &419490248
 GameObject:
   m_ObjectHideFlags: 0
@@ -1715,7 +1733,7 @@ MonoBehaviour:
     m_FontStyle: 0
     m_BestFit: 0
     m_MinSize: 10
-    m_MaxSize: 40
+    m_MaxSize: 80
     m_Alignment: 4
     m_AlignByGeometry: 0
     m_RichText: 1
@@ -1996,6 +2014,8 @@ MonoBehaviour:
   domainColor: {r: 0.831, g: 0.686, b: 0.216, a: 1}
   breathSpeed: 1.5
   breathAmount: 0.03
+  shakeEnabled: 0
+  shakeIntensity: 3
 --- !u!114 &1038338087
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2058,6 +2078,21 @@ MonoBehaviour:
   - {fileID: 5126014976571526935, guid: 55b2e0f614d9b4c7eb1428eb17cf6832, type: 3}
   fps: 10
   loop: 1
+  attackFrames:
+  - {fileID: -4188566294614232738, guid: ac5c102b966c9432380a64b97b54bc3e, type: 3}
+  - {fileID: 8499780688130919323, guid: ac5c102b966c9432380a64b97b54bc3e, type: 3}
+  - {fileID: 4711914415968574371, guid: ac5c102b966c9432380a64b97b54bc3e, type: 3}
+  - {fileID: 8374256527892688220, guid: ac5c102b966c9432380a64b97b54bc3e, type: 3}
+  - {fileID: -3240873700677151865, guid: ac5c102b966c9432380a64b97b54bc3e, type: 3}
+  - {fileID: -4684545487591099743, guid: ac5c102b966c9432380a64b97b54bc3e, type: 3}
+  - {fileID: 1751174152731386347, guid: ac5c102b966c9432380a64b97b54bc3e, type: 3}
+  - {fileID: 8594184277703774289, guid: ac5c102b966c9432380a64b97b54bc3e, type: 3}
+  attackFps: 12
+  hitFrames:
+  - {fileID: 5694623043957834834, guid: 27f9551e1357049a5b6c5170cf06fd46, type: 3}
+  - {fileID: 6163286690315941367, guid: 27f9551e1357049a5b6c5170cf06fd46, type: 3}
+  - {fileID: -7779380033540780599, guid: 27f9551e1357049a5b6c5170cf06fd46, type: 3}
+  hitFps: 12
 --- !u!1 &1244707669
 GameObject:
   m_ObjectHideFlags: 0
@@ -2399,6 +2434,9 @@ MonoBehaviour:
   trueNameSystem: {fileID: 1427042565}
   wordSpawner: {fileID: 1427042561}
   backgroundImage: {fileID: 676162568}
+  OnPhaseChanged:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!114 &1427042561
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2478,6 +2516,12 @@ MonoBehaviour:
   OnDomainPressed:
     m_PersistentCalls:
       m_Calls: []
+  OnDualChantStarted:
+    m_PersistentCalls:
+      m_Calls: []
+  OnDualChantCompleted:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!114 &1427042564
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2531,6 +2575,9 @@ MonoBehaviour:
   OnWin:
     m_PersistentCalls:
       m_Calls: []
+  OnPhaseGuessCorrect:
+    m_PersistentCalls:
+      m_Calls: []
   OnLose:
     m_PersistentCalls:
       m_Calls: []
@@ -2549,6 +2596,7 @@ MonoBehaviour:
   config: {fileID: 11400000, guid: 966d5c5a7738f4d11ab6f553fa43d310, type: 2}
   playerTrueName: "\u65E0\u540D\u8005"
   enemyTrueName: MIRROR
+  currentPhaseNames: []
   OnStateChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -3489,7 +3537,7 @@ MonoBehaviour:
     m_FontStyle: 0
     m_BestFit: 0
     m_MinSize: 10
-    m_MaxSize: 40
+    m_MaxSize: 80
     m_Alignment: 4
     m_AlignByGeometry: 0
     m_RichText: 1
